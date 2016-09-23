@@ -1,19 +1,7 @@
 package com.cognifide.cq.includefilter;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Enumeration;
-import java.util.List;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-
+import com.cognifide.cq.includefilter.generator.IncludeGenerator;
+import com.cognifide.cq.includefilter.generator.IncludeGeneratorWhiteboard;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.felix.scr.annotations.Reference;
@@ -26,8 +14,13 @@ import org.apache.sling.api.resource.ResourceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.cognifide.cq.includefilter.generator.IncludeGenerator;
-import com.cognifide.cq.includefilter.generator.IncludeGeneratorWhiteboard;
+import javax.servlet.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Enumeration;
+import java.util.List;
 
 @SlingFilter(scope = SlingFilterScope.INCLUDE, order = -500)
 public class IncludeTagWritingFilter implements Filter {
@@ -153,6 +146,15 @@ public class IncludeTagWritingFilter implements Filter {
 			builder.append('.').append(sanitize(pathInfo.getSelectorString()));
 		}
 		builder.append('.').append(config.getIncludeSelector());
+        if (config.isSessionIdSelectorEnabled()) {
+            // note: don't use request.getRequestedSessionId() as this could leak data by guessing the session id
+            final String sessionId = request.getSession(true).getId();
+            if (StringUtils.isNotEmpty(sessionId)) {
+                builder.append('.').append(sessionId);
+            } else {
+                builder.append('.').append("dynamic");
+            }
+        }
 		builder.append('.').append(pathInfo.getExtension());
 		if (synthetic) {
 			builder.append('/').append(resource.getResourceType());

@@ -1,22 +1,16 @@
 package com.cognifide.cq.includefilter;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.ConfigurationPolicy;
-import org.apache.felix.scr.annotations.Properties;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.PropertyOption;
-import org.apache.felix.scr.annotations.Service;
+import org.apache.felix.scr.annotations.*;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.commons.osgi.PropertiesUtil;
 import org.osgi.framework.Constants;
 import org.osgi.service.component.ComponentContext;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Include filter configuration.
@@ -41,7 +35,8 @@ import org.osgi.service.component.ComponentContext;
 	@Property(name = Configuration.PROPERTY_COMPONENT_TTL, label = "Component TTL", description = "\"Time to live\" cache header for rendered component (in seconds)"),
 	@Property(name = Configuration.PROPERTY_REQUIRED_HEADER, value = Configuration.DEFAULT_REQUIRED_HEADER, label = "Required header", description = "SDI will work only for requests with given header"),
 	@Property(name = Configuration.PROPERTY_IGNORE_URL_PARAMS, cardinality = Integer.MAX_VALUE, label = "Ignore URL params", description = "SDI will process the request even if it contains configured GET parameters"),
-	@Property(name = Configuration.PROPERTY_REWRITE_PATH, boolValue = Configuration.DEFAULT_REWRITE_DISABLED, label = "Include path rewriting", description = "Check to enable include path rewriting")
+	@Property(name = Configuration.PROPERTY_REWRITE_PATH, boolValue = Configuration.DEFAULT_REWRITE_DISABLED, label = "Include path rewriting", description = "Check to enable include path rewriting"),
+    @Property(name = Configuration.PROPERTY_SESSIONID_SELECTOR_ENABLED, boolValue = Configuration.DEFAULT_SESSIONID_SELECTOR_ENABLED, label = "Session id selector enabled", description = "Check to enable adding of the session id selector"),
 })
 public class Configuration {
 
@@ -52,7 +47,11 @@ public class Configuration {
 	static final String PROPERTY_FILTER_ENABLED = "include-filter.config.enabled";
 
 	static final boolean DEFAULT_FILTER_ENABLED = false;
+    
+    static final String PROPERTY_SESSIONID_SELECTOR_ENABLED = "include-filter.sessionid-selector.enabled";
 
+    static final boolean DEFAULT_SESSIONID_SELECTOR_ENABLED = true;
+    
 	static final String PROPERTY_FILTER_RESOURCE_TYPES = "include-filter.config.resource-types";
 
 	static final String PROPERTY_FILTER_SELECTOR = "include-filter.config.selector";
@@ -98,6 +97,8 @@ public class Configuration {
 	private List<String> ignoreUrlParams;
 	
 	private boolean rewritePath;
+    
+    private boolean isSessionIdSelectorEnabled;
 
 	@Activate
 	public void activate(ComponentContext context, Map<String, ?> properties) {
@@ -122,6 +123,7 @@ public class Configuration {
 				DEFAULT_REQUIRED_HEADER);
 		ignoreUrlParams = Arrays.asList(PropertiesUtil.toStringArray(properties.get(PROPERTY_IGNORE_URL_PARAMS), new String[0]));
 		rewritePath = PropertiesUtil.toBoolean(properties.get(PROPERTY_REWRITE_PATH), DEFAULT_REWRITE_DISABLED);
+        isSessionIdSelectorEnabled = PropertiesUtil.toBoolean(properties.get(PROPERTY_SESSIONID_SELECTOR_ENABLED), DEFAULT_SESSIONID_SELECTOR_ENABLED);
 	}
 
 	public String getBasePath() {
@@ -171,4 +173,12 @@ public class Configuration {
 	public boolean isRewritePath() {
 		return rewritePath;
 	}
+
+    public boolean isSessionIdSelectorEnabled() {
+        return isSessionIdSelectorEnabled;
+    }
+
+    public void setSessionIdSelectorEnabled(boolean isSessionIdSelectorEnabled) {
+        this.isSessionIdSelectorEnabled = isSessionIdSelectorEnabled;
+    }
 }
